@@ -1,1001 +1,225 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>POMODORO · FOCO</title>
-
-  <!-- Fontes: Bebas Neue (display dramático) + JetBrains Mono (corpo técnico) -->
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    /* ============================================================
-       VARIÁVEIS — paleta amber-on-dark estilo terminal vintage
-    ============================================================ */
     :root {
-      --bg:        #08090a;
-      --panel:     #0e1012;
-      --border:    #1e2226;
-      --amber:     #f5a623;
-      --amber-dim: #7a5112;
-      --amber-glow:rgba(245,166,35,0.18);
-      --red:       #e84545;
-      --red-glow:  rgba(232,69,69,0.2);
-      --green:     #39d98a;
-      --text:      #e8dfc8;
-      --muted:     #454a52;
-      --grid:      rgba(245,166,35,0.04);
+      --bg: #0b0c0e; --panel: #121417; --border: #23272e;
+      --amber: #f5a623; --red: #e84545; --green: #39d98a;
+      --text: #e8dfc8; --muted: #6c737f;
     }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'JetBrains Mono', monospace;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-      background-image: radial-gradient(circle, var(--grid) 1px, transparent 1px);
-      background-size: 28px 28px;
-      overflow-x: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: 'JetBrains Mono', monospace; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem;
     }
-
-    /* Brilho de ambiente */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 30%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 700px; height: 400px;
-      background: radial-gradient(ellipse, rgba(245,166,35,0.07) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    header, .cockpit, #toast { position: relative; z-index: 1; }
-
-    /* ============================================================
-       CABEÇALHO
-    ============================================================ */
-    header {
-      text-align: center;
-      margin-bottom: 2.8rem;
-      animation: fadeDown 0.7s ease both;
-    }
-
-    .sys-line {
-      font-size: 0.65rem;
-      letter-spacing: 0.22em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-    .sys-line::before {
-      content: '●';
-      color: var(--green);
-      margin-right: 0.5rem;
-      animation: pulse 2s infinite;
-    }
-
-    header h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(3.5rem, 10vw, 6.5rem);
-      letter-spacing: 0.08em;
-      line-height: 1;
-      color: var(--amber);
-      text-shadow: 0 0 30px rgba(245,166,35,0.5), 0 0 80px rgba(245,166,35,0.2);
-    }
-
-    /* ============================================================
-       COCKPIT / PAINEL
-    ============================================================ */
-    .cockpit {
-      width: 100%;
-      max-width: 620px;
-      display: flex;
-      flex-direction: column;
-      animation: fadeUp 0.8s ease 0.15s both;
-    }
-
-    .panel-label {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      margin-bottom: -1px;
-      padding: 0 1.2rem;
-    }
-    .panel-label span {
-      font-size: 0.6rem;
-      letter-spacing: 0.2em;
-      color: var(--amber);
-      text-transform: uppercase;
-      background: var(--bg);
-      padding: 0.2rem 0.6rem;
-      border: 1px solid var(--amber-dim);
-      border-bottom: none;
-    }
-    .panel-label::before, .panel-label::after {
-      content: ''; flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
+    h1 { font-family: 'Bebas Neue', sans-serif; font-size: 3.8rem; letter-spacing: 0.06em; color: var(--amber); margin-bottom: 1rem; }
     .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 4px 4px 16px 16px;
-      padding: 2.2rem 2rem 2rem;
-      box-shadow:
-        0 0 0 1px var(--border),
-        0 40px 80px rgba(0,0,0,0.7),
-        inset 0 1px 0 rgba(245,166,35,0.08);
+      width: 100%; max-width: 440px; background: var(--panel);
+      border: 1px solid var(--border); border-radius: 12px; padding: 1.8rem;
     }
-
-    /* ============================================================
-       INPUTS H · M · S
-    ============================================================ */
-    .input-row {
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-bottom: 2.2rem;
+    .inputs { display: flex; justify-content: center; align-items: flex-end; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .field { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+    .field label, .stat span { font-size: 0.7rem; text-transform: uppercase; color: var(--muted); }
+    .field input {
+      width: 68px; padding: 0.35rem; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--amber); font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; text-align: center;
     }
-
-    .igroup {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.35rem;
+    .field input:focus { outline: none; border-color: var(--amber); }
+    .field input:disabled { opacity: 0.4; }
+    .sep { font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; color: var(--muted); padding-bottom: 0.25rem; }
+    #display {
+      font-family: 'Bebas Neue', sans-serif; font-size: 4.8rem; letter-spacing: 0.05em;
+      text-align: center; color: var(--amber); background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; line-height: 1;
     }
-
-    .igroup label {
-      font-size: 0.58rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
+    #display.urgent { color: var(--red); }
+    .track { height: 5px; background: var(--border); border-radius: 99px; margin: 1rem 0 0.7rem; overflow: hidden; }
+    #progress { height: 100%; width: 100%; background: var(--amber); transition: width 1s linear, background 0.3s; }
+    #status { text-align: center; font-size: 0.75rem; color: var(--muted); min-height: 1.2em; }
+    .controls { display: flex; gap: 0.6rem; justify-content: center; margin: 1.4rem 0; }
+    button {
+      font-family: inherit; font-size: 0.75rem; font-weight: 600; padding: 0.6rem 1.1rem;
+      border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer;
     }
-
-    .igroup input {
-      width: 80px;
-      padding: 0.55rem 0;
-      background: var(--bg);
-      border: 1px solid var(--amber-dim);
-      border-radius: 6px;
-      color: var(--amber);
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2rem;
-      text-align: center;
-      letter-spacing: 0.05em;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      appearance: none;
-      -moz-appearance: textfield;
+    button:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); }
+    button:disabled { opacity: 0.3; cursor: not-allowed; }
+    #btn-start { background: var(--amber); color: var(--bg); border-color: var(--amber); }
+    #btn-start:hover:not(:disabled) { filter: brightness(1.1); color: var(--bg); }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; border-top: 1px solid var(--border); padding-top: 1.2rem; }
+    .stat {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.8rem; display: flex; flex-direction: column; gap: 0.25rem;
     }
-    .igroup input::-webkit-outer-spin-button,
-    .igroup input::-webkit-inner-spin-button { display: none; }
-    .igroup input:focus {
-      outline: none;
-      border-color: var(--amber);
-      box-shadow: 0 0 0 3px var(--amber-glow), 0 0 16px var(--amber-glow);
-    }
-    .igroup input:disabled { opacity: 0.35; border-color: var(--border); color: var(--muted); }
-
-    .sep {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2rem;
-      color: var(--amber-dim);
-      padding-bottom: 0.35rem;
-      line-height: 1;
-    }
-
-    /* ============================================================
-       DÍGITOS INDIVIDUAIS DO RELÓGIO
-    ============================================================ */
-    .clock-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 1.6rem;
-    }
-
-    .digits-row {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    .digit-block { display: flex; gap: 0.18rem; }
-
-    /* Um único dígito — estilo display LCD retro */
-    .digit {
-      width: 52px;
-      height: 80px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 3.6rem;
-      color: var(--amber);
-      text-shadow: 0 0 20px rgba(245,166,35,0.6);
-      /* Scanlines retro */
-      background-image: repeating-linear-gradient(
-        0deg, transparent, transparent 3px,
-        rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px
-      );
-      transition: color 0.3s, text-shadow 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-    .digit::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 40%;
-      background: linear-gradient(to bottom, rgba(255,255,255,0.04), transparent);
-      pointer-events: none;
-    }
-    .digit.running {
-      color: var(--amber);
-      text-shadow: 0 0 28px rgba(245,166,35,0.9), 0 0 60px rgba(245,166,35,0.3);
-    }
-    .digit.urgent {
-      color: var(--red);
-      text-shadow: 0 0 24px var(--red-glow), 0 0 50px var(--red-glow);
-      animation: flicker 1.2s infinite;
-    }
-
-    .digit-sep {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 3rem;
-      color: var(--amber-dim);
-      line-height: 1;
-      padding-bottom: 0.2rem;
-      transition: opacity 0.5s;
-    }
-    .digit-sep.blink { animation: blink 1s step-end infinite; }
-
-    /* ============================================================
-       BARRA DE PROGRESSO
-    ============================================================ */
-    .progress-bar-wrap {
-      width: 100%;
-      max-width: 420px;
-      margin-top: 1.2rem;
-    }
-
-    .progress-track {
-      width: 100%;
-      height: 4px;
-      background: var(--border);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: 100%;
-      background: linear-gradient(90deg, var(--amber-dim), var(--amber));
-      border-radius: 99px;
-      transition: width 1s linear, background 0.5s;
-      box-shadow: 0 0 8px rgba(245,166,35,0.5);
-    }
-
-    /* ============================================================
-       STATUS
-    ============================================================ */
-    #status-text {
-      text-align: center;
-      font-size: 0.68rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-top: 0.9rem;
-      min-height: 1.1em;
-      transition: color 0.3s;
-    }
-    #status-text.active { color: var(--amber); }
-    #status-text.done   { color: var(--green); }
-
-    /* ============================================================
-       BOTÕES
-    ============================================================ */
-    .controls {
-      display: flex;
-      gap: 0.8rem;
-      justify-content: center;
-      margin-top: 2rem;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      padding: 0.7rem 1.6rem;
-      border-radius: 6px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: transform 0.12s, box-shadow 0.18s, background 0.18s, opacity 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-    .btn::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent);
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .btn:hover::before { opacity: 1; }
-    .btn:hover { transform: translateY(-2px); }
-    .btn:active { transform: translateY(0) scale(0.97); }
-
-    #btn-start {
-      background: var(--amber);
-      color: #0a0800;
-      border-color: var(--amber);
-      box-shadow: 0 0 20px var(--amber-glow), 0 4px 12px rgba(0,0,0,0.4);
-    }
-    #btn-start:hover { box-shadow: 0 0 32px rgba(245,166,35,0.4), 0 8px 24px rgba(0,0,0,0.5); }
-
-    #btn-pause {
-      background: transparent;
-      color: var(--amber);
-      border-color: var(--amber-dim);
-    }
-    #btn-pause:hover { border-color: var(--amber); background: var(--amber-glow); }
-
-    #btn-reset {
-      background: transparent;
-      color: var(--muted);
-      border-color: var(--border);
-    }
-    #btn-reset:hover { color: var(--text); border-color: var(--muted); }
-
-    .btn:disabled { opacity: 0.28; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-
-    /* ============================================================
-       DIVISOR
-    ============================================================ */
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin: 2rem 0 1.4rem;
-    }
-    .divider::before, .divider::after {
-      content: ''; flex: 1; height: 1px;
-    }
-    .divider::before { background: linear-gradient(to right, transparent, var(--border)); }
-    .divider::after  { background: linear-gradient(to left,  transparent, var(--border)); }
-    .divider span {
-      font-size: 0.58rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    /* ============================================================
-       STATS GRID — tabela de ciclos
-    ============================================================ */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.8rem;
-    }
-
-    .stat-cell {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem 1.2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .stat-label {
-      font-size: 0.58rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .stat-value {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.2rem;
-      letter-spacing: 0.05em;
-      line-height: 1;
-      color: var(--amber);
-      text-shadow: 0 0 20px rgba(245,166,35,0.4);
-    }
-
-    #cycle-count { font-size: 2.8rem; }
-
-    /* Botão de limpar ciclos — pequeno, discreto, dentro da stat-cell */
-    #btn-clear-cycles {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.55rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      padding: 0.3rem 0.7rem;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      margin-top: 0.3rem;
-      align-self: flex-start;
-      transition: color 0.2s, border-color 0.2s, background 0.2s;
-    }
-    #btn-clear-cycles:hover {
-      color: var(--red);
-      border-color: var(--red);
-      background: rgba(232,69,69,0.08);
-    }
-    #btn-clear-cycles:active { transform: scale(0.96); }
-
-    /* ============================================================
-       TOAST
-    ============================================================ */
+    .stat strong { font-family: 'Bebas Neue', sans-serif; font-size: 1.9rem; color: var(--amber); font-weight: 400; }
+    #btn-clear { font-size: 0.65rem; padding: 0.2rem 0.5rem; align-self: flex-start; color: var(--muted); }
+    #btn-clear:hover { border-color: var(--red); color: var(--red); }
     #toast {
-      position: fixed;
-      bottom: 2rem; right: 2rem;
-      padding: 1rem 1.4rem;
-      border-radius: 10px;
-      border: 1px solid var(--amber-dim);
-      background: #0e0c08;
-      color: var(--amber);
-      font-size: 0.75rem;
-      letter-spacing: 0.06em;
-      box-shadow: 0 0 40px var(--amber-glow), 0 20px 40px rgba(0,0,0,0.6);
-      opacity: 0;
-      transform: translateY(16px);
-      pointer-events: none;
-      transition: opacity 0.35s, transform 0.35s;
-      z-index: 999;
-      max-width: 300px;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
+      position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--panel);
+      border: 1px solid var(--amber); color: var(--amber); padding: 0.8rem 1.1rem;
+      border-radius: 8px; font-size: 0.8rem; opacity: 0; pointer-events: none; transition: 0.3s;
     }
-    .toast-icon { font-size: 1.4rem; flex-shrink: 0; }
-    #toast.show { opacity: 1; transform: translateY(0); }
-
-    /* ============================================================
-       ANIMAÇÕES
-    ============================================================ */
-    @keyframes pulse {
-      0%,100% { opacity: 1; }
-      50%      { opacity: 0.3; }
-    }
-    @keyframes blink {
-      0%,100% { opacity: 1; }
-      50%      { opacity: 0; }
-    }
-    @keyframes flicker {
-      0%,100% { opacity: 1; }
-      92%     { opacity: 1; }
-      93%     { opacity: 0.4; }
-      94%     { opacity: 1; }
-      96%     { opacity: 0.6; }
-      97%     { opacity: 1; }
-    }
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-18px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes digitFlip {
-      0%   { transform: translateY(-6px); opacity: 0; }
-      100% { transform: translateY(0);    opacity: 1; }
-    }
-    .digit.flip { animation: digitFlip 0.18s ease; }
-
-    /* ============================================================
-       RESPONSIVIDADE
-    ============================================================ */
-    @media (max-width: 520px) {
-      .digit { width: 40px; height: 62px; font-size: 2.7rem; }
-      .igroup input { width: 66px; font-size: 1.6rem; }
-      .controls { gap: 0.5rem; }
-      .btn { padding: 0.6rem 1rem; font-size: 0.63rem; }
-      .stats-grid { grid-template-columns: 1fr; }
-    }
+    #toast.show { opacity: 1; }
   </style>
 </head>
 <body>
 
-  <!-- ============================================================
-       CABEÇALHO
-  ============================================================ -->
-  <header>
-    <div class="sys-line">sistema de foco · v2.0</div>
-    <h1>Pomodoro</h1>
-  </header>
+  <h1>Pomodoro</h1>
 
-  <!-- ============================================================
-       COCKPIT PRINCIPAL
-  ============================================================ -->
-  <div class="cockpit">
-
-    <div class="panel-label">
-      <span>⬡ painel de controle</span>
+  <main class="panel">
+    <div class="inputs">
+      <div class="field"><label for="ih">Horas</label><input type="number" id="ih" min="0" max="23" value="0" /></div>
+      <span class="sep">:</span>
+      <div class="field"><label for="im">Min</label><input type="number" id="im" min="0" max="59" value="25" /></div>
+      <span class="sep">:</span>
+      <div class="field"><label for="iseg">Seg</label><input type="number" id="iseg" min="0" max="59" value="0" /></div>
     </div>
 
-    <div class="panel">
+    <div id="display">00:25:00</div>
+    <div class="track"><div id="progress"></div></div>
+    <p id="status">Defina o tempo e clique em iniciar</p>
 
-      <!-- ── INPUTS DE TEMPO: H · M · S ── -->
-      <div class="input-row">
+    <div class="controls">
+      <button id="btn-start">Iniciar</button>
+      <button id="btn-pause" disabled>Pausar</button>
+      <button id="btn-reset">Reiniciar</button>
+    </div>
 
-        <div class="igroup">
-          <label for="ih">Horas</label>
-          <!-- Horas: 0-23 -->
-          <input type="number" id="ih" min="0" max="23" value="0"/>
-        </div>
-
-        <div class="sep">:</div>
-
-        <div class="igroup">
-          <label for="im">Min</label>
-          <!-- Minutos: 0-59 -->
-          <input type="number" id="im" min="0" max="59" value="25"/>
-        </div>
-
-        <div class="sep">:</div>
-
-        <div class="igroup">
-          <label for="iseg">Seg</label>
-          <!-- Segundos: 0-59 — campo novo adicionado conforme pedido -->
-          <input type="number" id="iseg" min="0" max="59" value="0"/>
-        </div>
-
+    <div class="stats">
+      <div class="stat">
+        <span>Ciclos concluídos</span>
+        <strong id="cycles">0</strong>
+        <button id="btn-clear">Zerar</button>
       </div>
-
-      <!-- ── DISPLAY DO RELÓGIO ── -->
-      <div class="clock-wrapper">
-        <div class="digits-row">
-
-          <!-- Bloco HORAS -->
-          <div class="digit-block">
-            <div class="digit" id="d0">0</div>
-            <div class="digit" id="d1">0</div>
-          </div>
-
-          <div class="digit-sep" id="sep1">:</div>
-
-          <!-- Bloco MINUTOS -->
-          <div class="digit-block">
-            <div class="digit" id="d2">2</div>
-            <div class="digit" id="d3">5</div>
-          </div>
-
-          <div class="digit-sep" id="sep2">:</div>
-
-          <!-- Bloco SEGUNDOS -->
-          <div class="digit-block">
-            <div class="digit" id="d4">0</div>
-            <div class="digit" id="d5">0</div>
-          </div>
-
-        </div>
-
-        <!-- Barra de progresso -->
-        <div class="progress-bar-wrap">
-          <div class="progress-track">
-            <div class="progress-fill" id="progress-fill"></div>
-          </div>
-        </div>
-
-        <div id="status-text">Defina o tempo e pressione iniciar</div>
+      <div class="stat">
+        <span>Tempo focado</span>
+        <strong id="elapsed">00:00:00</strong>
       </div>
+    </div>
+  </main>
 
-      <!-- ── BOTÕES ── -->
-      <div class="controls">
-        <!-- setTimeout recursivo: inicia contagem -->
-        <button class="btn" id="btn-start">▶ Iniciar</button>
-        <!-- clearTimeout: pausa sem resetar -->
-        <button class="btn" id="btn-pause" disabled>⏸ Pausar</button>
-        <!-- Retorna ao tempo original -->
-        <button class="btn" id="btn-reset">↺ Reiniciar</button>
-      </div>
+  <div id="toast">Ciclo concluído!</div>
 
-      <!-- ── TABELA DE CICLOS ── -->
-      <div class="divider"><span>estatísticas da sessão</span></div>
-
-      <div class="stats-grid">
-        <!-- Ciclos concluídos — atualizado via cookie a cada timer zerado -->
-        <div class="stat-cell">
-          <div class="stat-label">Ciclos de foco concluídos</div>
-          <div class="stat-value" id="cycle-count">0</div>
-          <!-- Limpa o contador e apaga o cookie de ciclos -->
-          <button id="btn-clear-cycles">✕ limpar</button>
-        </div>
-        <!-- Tempo total focado na sessão -->
-        <div class="stat-cell">
-          <div class="stat-label">Tempo total focado</div>
-          <div class="stat-value" id="total-time">00:00:00</div>
-        </div>
-      </div>
-
-    </div><!-- /panel -->
-  </div><!-- /cockpit -->
-
-  <!-- ============================================================
-       TOAST DE NOTIFICAÇÃO
-  ============================================================ -->
-  <div id="toast" role="alert" aria-live="assertive">
-    <span class="toast-icon">🍅</span>
-    <div id="toast-msg">Ciclo concluído!</div>
-  </div>
-
-
-  <!-- ============================================================
-       JAVASCRIPT — lógica completa comentada
-  ============================================================ -->
   <script>
-    /* ===========================================================
-       1. SELETORES DOM
-    =========================================================== */
-    const ih           = document.getElementById('ih');       // Input horas
-    const im           = document.getElementById('im');       // Input minutos
-    const isec         = document.getElementById('iseg');     // Input segundos
-    const digits       = Array.from({length: 6}, (_, i) => document.getElementById('d' + i));
-    const sep1         = document.getElementById('sep1');
-    const sep2         = document.getElementById('sep2');
-    const progressFill = document.getElementById('progress-fill');
-    const statusText   = document.getElementById('status-text');
-    const btnStart     = document.getElementById('btn-start');
-    const btnPause     = document.getElementById('btn-pause');
-    const btnReset     = document.getElementById('btn-reset');
-    const cycleCountEl = document.getElementById('cycle-count');
-    const totalTimeEl  = document.getElementById('total-time');
-    const toast        = document.getElementById('toast');
-    const toastMsg     = document.getElementById('toast-msg');
+    const $ = id => document.getElementById(id);
+    const inputs = [$('ih'), $('im'), $('iseg')];
 
-    /* ===========================================================
-       2. ESTADO DO TIMER
-    =========================================================== */
-    let totalSeconds     = 0;
-    let remainingSeconds = 0;
-    let elapsedSeconds   = 0;
-    let timeoutId        = null;
-    let isRunning        = false;
-    let prevDigits       = ['0','0','0','0','0','0'];
-    let completedCycles  = 0; // Declarado aqui; valor lido após as funções
+    let total = 0, remaining = 0, timer = null, running = false;
+    let cycles = parseInt(getCookie('pomodoro_cycles') || '0', 10);
+    let elapsed = parseInt(getCookie('pomodoro_elapsed') || '0', 10);
 
-    /* ===========================================================
-       3. COOKIES
-    =========================================================== */
-
-    /** Grava cookie com validade em dias */
-    function setCookie(name, value, days) {
-      const exp = new Date();
-      exp.setTime(exp.getTime() + days * 86400000);
-      document.cookie = `${name}=${value}; expires=${exp.toUTCString()}; path=/`;
+    function setCookie(name, val, days) {
+      try {
+        const exp = new Date(Date.now() + days * 864e5).toUTCString();
+        document.cookie = `${name}=${val}; expires=${exp}; path=/`;
+      } catch (e) {}
     }
 
-    /** Lê cookie pelo nome; retorna null se não existir */
     function getCookie(name) {
-      for (let c of document.cookie.split(';')) {
-        c = c.trim();
-        if (c.startsWith(name + '=')) return c.substring(name.length + 1);
-      }
-      return null;
+      try {
+        const item = document.cookie.split('; ').find(r => r.startsWith(name + '='));
+        return item ? item.split('=')[1] : null;
+      } catch (e) { return null; }
     }
 
-    /* ===========================================================
-       4. FORMATAÇÃO DE TEMPO
-       (declarada antes de qualquer chamada)
-    =========================================================== */
-
-    /** Segundos → "HH:MM:SS" */
-    function formatTime(secs) {
-      const h = Math.floor(secs / 3600);
-      const m = Math.floor((secs % 3600) / 60);
-      const s = secs % 60;
-      return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+    function format(s) {
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      return [h, m, s % 60].map(v => String(v).padStart(2, '0')).join(':');
     }
 
-    /** Lê os três inputs e retorna total em segundos */
-    function getInputSeconds() {
-      const h = parseInt(ih.value   || '0', 10);
-      const m = parseInt(im.value   || '0', 10);
-      const s = parseInt(isec.value || '0', 10);
+    function getSeconds() {
+      const [h, m, s] = inputs.map(i => Math.max(0, Math.min(Number(i.max), parseInt(i.value || '0', 10))));
       return h * 3600 + m * 60 + s;
     }
 
-    /* ===========================================================
-       5. ATUALIZAÇÃO DOS DÍGITOS COM ANIMAÇÃO DE FLIP
-    =========================================================== */
-
-    /**
-     * Distribui os 6 chars de "HHMMSS" nos elementos .digit.
-     * Anima com flip apenas o dígito que realmente mudou.
-     */
-    function updateDigits(secs) {
-      const str = formatTime(secs).replace(/:/g, '');
-      str.split('').forEach((ch, i) => {
-        if (ch !== prevDigits[i]) {
-          digits[i].classList.remove('flip');
-          void digits[i].offsetWidth; // Força reflow para reiniciar CSS animation
-          digits[i].classList.add('flip');
-          prevDigits[i] = ch;
-        }
-        digits[i].textContent = ch;
-      });
+    function updateUI(secs, frac = 1) {
+      $('display').textContent = format(secs);
+      $('display').classList.toggle('urgent', running && frac <= 0.1);
+      $('progress').style.width = (frac * 100) + '%';
+      $('progress').style.background = frac > 0.5 ? 'var(--green)' : frac > 0.2 ? 'var(--amber)' : 'var(--red)';
     }
 
-    /**
-     * Define estado de cor dos dígitos.
-     * @param {'normal'|'running'|'urgent'} state
-     */
-    function setDigitState(state) {
-      digits.forEach(d => {
-        d.classList.remove('running', 'urgent');
-        if (state !== 'normal') d.classList.add(state);
-      });
+    function setRunning(state) {
+      running = state;
+      inputs.forEach(i => i.disabled = state);
+      $('btn-start').disabled = state;
+      $('btn-pause').disabled = !state;
     }
 
-    /* ===========================================================
-       6. BARRA DE PROGRESSO
-    =========================================================== */
-
-    /** Atualiza largura e cor da barra conforme fração restante (0-1) */
-    function updateProgress(fraction) {
-      progressFill.style.width = (fraction * 100) + '%';
-      if (fraction > 0.5) {
-        progressFill.style.background = 'linear-gradient(90deg, #2a7a52, #39d98a)';
-      } else if (fraction > 0.2) {
-        progressFill.style.background = 'linear-gradient(90deg, var(--amber-dim), var(--amber))';
-      } else {
-        progressFill.style.background = 'linear-gradient(90deg, #7a1515, var(--red))';
-      }
-    }
-
-    /* ===========================================================
-       7. CONTAGEM REGRESSIVA — setTimeout recursivo
-    =========================================================== */
-
-    /**
-     * Um tick = 1 segundo. Agenda o próximo via setTimeout
-     * compensando o drift com Date.now().
-     */
     function tick() {
-      const t0 = Date.now(); // Captura instante exato do início do tick
+      const t0 = Date.now();
+      remaining--;
+      elapsed++;
 
-      remainingSeconds--;
+      updateUI(remaining, total > 0 ? remaining / total : 0);
+      $('elapsed').textContent = format(elapsed);
 
-      /* Atualiza display e barra */
-      updateDigits(remainingSeconds);
-      const fraction = totalSeconds > 0 ? remainingSeconds / totalSeconds : 0;
-      updateProgress(fraction);
-
-      /* Muda para urgente nos últimos 10% */
-      if (fraction <= 0.1 && remainingSeconds > 0) setDigitState('urgent');
-
-      /* Acumula tempo focado */
-      elapsedSeconds++;
-      totalTimeEl.textContent = formatTime(elapsedSeconds);
-
-      /* Verifica se chegou ao fim */
-      if (remainingSeconds <= 0) {
-        onCycleFinished();
+      if (remaining <= 0) {
+        setRunning(false);
+        cycles++;
+        setCookie('pomodoro_cycles', cycles, 365);
+        setCookie('pomodoro_elapsed', elapsed, 365);
+        $('cycles').textContent = cycles;
+        $('status').textContent = `Ciclo ${cycles} concluído`;
+        $('toast').textContent = `Ciclo ${cycles} finalizado. Hora de fazer uma pausa!`;
+        $('toast').classList.add('show');
+        setTimeout(() => $('toast').classList.remove('show'), 4000);
         return;
       }
 
-      /* Compensa drift: desconta ms gastos no tick */
-      const drift = Date.now() - t0;
-      timeoutId = setTimeout(tick, Math.max(0, 1000 - drift));
+      timer = setTimeout(tick, Math.max(0, 1000 - (Date.now() - t0)));
     }
 
-    /* ===========================================================
-       8. FIM DE CICLO
-    =========================================================== */
-
-    /** Executada ao chegar em 0 — registra ciclo via cookie e notifica */
-    function onCycleFinished() {
-      isRunning = false;
-      clearTimeout(timeoutId);
-
-      /* Incrementa e persiste via cookie (365 dias de validade) */
-      completedCycles++;
-      setCookie('pomodoro_cycles',  completedCycles, 365);
-      setCookie('pomodoro_elapsed', elapsedSeconds,  365);
-
-      cycleCountEl.textContent = completedCycles;
-
-      /* Visual de fim */
-      updateDigits(0);
-      setDigitState('normal');
-      updateProgress(0);
-      sep1.classList.add('blink');
-      sep2.classList.add('blink');
-
-      statusText.textContent = `✓ Ciclo ${completedCycles} concluído!`;
-      statusText.className   = 'done';
-
-      setInputsDisabled(false);
-      btnStart.disabled = false;
-      btnPause.disabled = true;
-
-      /* Alerta: cookie disparou o fim do ciclo */
-      showToast(`Ciclo #${completedCycles} concluído! Hora de respirar.`);
-    }
-
-    /* ===========================================================
-       9. TOAST
-    =========================================================== */
-
-    /** Exibe toast por 4.5 segundos */
-    function showToast(msg) {
-      toastMsg.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 4500);
-    }
-
-    /* ===========================================================
-       10. HELPERS
-    =========================================================== */
-
-    /** Bloqueia/libera os inputs durante a contagem */
-    function setInputsDisabled(disabled) {
-      [ih, im, isec].forEach(i => i.disabled = disabled);
-    }
-
-    /* ===========================================================
-       11. EVENTOS DOS BOTÕES
-    =========================================================== */
-
-    /* ── INICIAR ───────────────────────────────────────────────
-       Configura o tempo (se necessário) e dispara o primeiro tick
-    ────────────────────────────────────────────────────────── */
-    btnStart.addEventListener('click', () => {
-      if (isRunning) return;
-
-      /* Se não há tempo restante, lê os inputs */
-      if (remainingSeconds <= 0) {
-        totalSeconds = getInputSeconds();
-
-        /* Validação: mínimo 1 segundo */
-        if (totalSeconds < 1) {
-          statusText.textContent = '⚠ Insira pelo menos 1 segundo!';
-          statusText.className   = '';
-          return;
-        }
-
-        remainingSeconds = totalSeconds;
-        updateDigits(remainingSeconds);
-        updateProgress(1);
+    $('btn-start').addEventListener('click', () => {
+      if (running) return;
+      if (remaining <= 0) {
+        total = getSeconds();
+        if (total < 1) return ($('status').textContent = 'Insira pelo menos 1 segundo');
+        remaining = total;
+        updateUI(remaining, 1);
       }
-
-      /* Para os separadores piscando se estavam pausados */
-      sep1.classList.remove('blink');
-      sep2.classList.remove('blink');
-
-      isRunning = true;
-      setDigitState('running');
-      statusText.textContent = '● em foco';
-      statusText.className   = 'active';
-      setInputsDisabled(true);
-      btnStart.disabled = true;
-      btnPause.disabled = false;
-
-      /* Primeiro tick agendado — encadeia os próximos recursivamente */
-      timeoutId = setTimeout(tick, 1000);
+      setRunning(true);
+      $('status').textContent = 'Em andamento...';
+      timer = setTimeout(tick, 1000);
     });
 
-    /* ── PAUSAR ────────────────────────────────────────────────
-       clearTimeout cancela o setTimeout pendente — tempo é preservado
-    ────────────────────────────────────────────────────────── */
-    btnPause.addEventListener('click', () => {
-      if (!isRunning) return;
-
-      isRunning = false;
-      clearTimeout(timeoutId); /* Cancela o próximo tick agendado */
-
-      sep1.classList.add('blink');
-      sep2.classList.add('blink');
-
-      setDigitState('normal');
-      statusText.textContent = '⏸ pausado';
-      statusText.className   = '';
-      btnStart.disabled = false;
-      btnPause.disabled = true;
+    $('btn-pause').addEventListener('click', () => {
+      clearTimeout(timer);
+      setRunning(false);
+      $('status').textContent = 'Pausado';
     });
 
-    /* ── REINICIAR ─────────────────────────────────────────────
-       Para tudo e retorna ao tempo dos inputs
-    ────────────────────────────────────────────────────────── */
-    btnReset.addEventListener('click', () => {
-      isRunning = false;
-      clearTimeout(timeoutId);
-
-      sep1.classList.remove('blink');
-      sep2.classList.remove('blink');
-
-      totalSeconds     = getInputSeconds();
-      remainingSeconds = totalSeconds;
-
-      updateDigits(remainingSeconds);
-      setDigitState('normal');
-      updateProgress(totalSeconds > 0 ? 1 : 0);
-
-      statusText.textContent = 'Reiniciado · pronto para focar';
-      statusText.className   = '';
-      setInputsDisabled(false);
-      btnStart.disabled = false;
-      btnPause.disabled = true;
+    $('btn-reset').addEventListener('click', () => {
+      clearTimeout(timer);
+      setRunning(false);
+      total = remaining = getSeconds();
+      updateUI(remaining, total > 0 ? 1 : 0);
+      $('status').textContent = 'Tempo reiniciado';
     });
 
-    /* ── LIMPAR CICLOS ─────────────────────────────────────────
-       Zera o contador de ciclos e apaga o cookie correspondente
-    ────────────────────────────────────────────────────────── */
-    document.getElementById('btn-clear-cycles').addEventListener('click', () => {
-      /* Reseta a variável em memória */
-      completedCycles = 0;
-
-      /* Apaga o cookie definindo validade no passado (técnica padrão de deleção) */
-      setCookie('pomodoro_cycles', '0', -1);
-
-      /* Atualiza o display */
-      cycleCountEl.textContent = 0;
-
-      /* Feedback visual sutil no status */
-      const prev = statusText.textContent;
-      const prevClass = statusText.className;
-      statusText.textContent = '✓ Ciclos zerados';
-      statusText.className   = '';
-      setTimeout(() => {
-        statusText.textContent = prev;
-        statusText.className   = prevClass;
-      }, 2000);
+    $('btn-clear').addEventListener('click', () => {
+      cycles = 0;
+      setCookie('pomodoro_cycles', 0, -1);
+      $('cycles').textContent = 0;
+      $('status').textContent = 'Contador de ciclos zerado';
     });
-    /* =========================================================== */
-    [ih, im, isec].forEach(input => {
+
+    inputs.forEach(input => {
       input.addEventListener('input', () => {
-        /* Clamp automático de limites */
-        const max = parseInt(input.max);
-        if (parseInt(input.value) > max) input.value = max;
-        if (parseInt(input.value) < 0)   input.value = 0;
-
-        /* Atualiza preview somente se timer estiver parado/zerado */
-        if (!isRunning && remainingSeconds === 0) {
-          const secs = getInputSeconds();
-          updateDigits(secs);
-          updateProgress(secs > 0 ? 1 : 0);
+        if (!running && remaining === 0) {
+          const s = getSeconds();
+          updateUI(s, s > 0 ? 1 : 0);
         }
       });
     });
 
-    /* ===========================================================
-       13. INICIALIZAÇÃO — roda por último, após todas as funções
-    =========================================================== */
-    (function init() {
-      /* Lê cookies AQUI, depois que formatTime já está declarada */
-      completedCycles = parseInt(getCookie('pomodoro_cycles')  || '0', 10);
-      elapsedSeconds  = parseInt(getCookie('pomodoro_elapsed') || '0', 10);
-      cycleCountEl.textContent = completedCycles;
-      totalTimeEl.textContent  = formatTime(elapsedSeconds);
-
-      /* Preview inicial do relógio */
-      const initial = getInputSeconds();
-      updateDigits(initial);
-      updateProgress(initial > 0 ? 1 : 0);
-    })();
+    $('cycles').textContent = cycles;
+    $('elapsed').textContent = format(elapsed);
+    updateUI(getSeconds(), 1);
   </script>
-
 </body>
 </html>
